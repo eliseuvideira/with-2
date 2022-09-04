@@ -1,0 +1,17 @@
+{
+  "name": "with-2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Eliseu Videira <eliseuvideira1@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.2",
+    "dotenv-safe": "^8.2.0",
+    "pg": "^8.8.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.21.4"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  }
+}
