@@ -55,7 +55,7 @@ class Repository {
    * @private
    */
   merge(filters) {
-    return filters.map((prev, curr) => lodash.merge(prev, curr), {});
+    return filters.reduce((prev, curr) => lodash.merge(prev, curr), {});
   }
 
   /**
@@ -64,13 +64,9 @@ class Repository {
    * @returns {Repository}
    */
   with(include) {
-    return new Repository({
-      Model: this.Model,
-      models: this.models,
-      query: this.query,
-      includes: [...this.includes, include],
-      filters: this.filters,
-    });
+    this.includes = [...this.includes, include];
+
+    return this;
   }
 
   /**
@@ -79,13 +75,9 @@ class Repository {
    * @returns {Repository}
    */
   where(filter) {
-    return new Repository({
-      Model: this.Model,
-      models: this.models,
-      query: this.query,
-      includes: this.includes,
-      filters: [...this.filters, filter],
-    });
+    this.filters = [...this.filters, filter];
+
+    return this;
   }
 
   /**
@@ -110,13 +102,9 @@ class Repository {
       return item.get();
     };
 
-    return new Repository({
-      Model: this.Model,
-      models: this.models,
-      query,
-      includes: this.includes,
-      filters: this.filters,
-    });
+    this.query = query;
+
+    return this;
   }
 
   create() {}
@@ -130,10 +118,12 @@ class Repository {
   list() {}
 
   async run() {
+    const where = this.merge(this.filters);
+
     const result = await this.query({
       Model: this.Model,
       includes: this.includes,
-      where: this.merge(this.filters),
+      where,
     });
 
     return result;
@@ -147,6 +137,20 @@ class UserRepository extends Repository {
 
   withComments() {
     return this.with(this.models.Comment);
+  }
+
+  withStories() {
+    return this.with(this.models.Story);
+  }
+
+  withPosts() {
+    return this.with(this.models.Post);
+  }
+
+  whereFirstName(first_name) {
+    return this.where({
+      first_name,
+    });
   }
 }
 
@@ -210,9 +214,15 @@ const main = async () => {
 
   const userRepository = new UserRepository({ models });
 
-  const value = await userRepository.read(usersWithComments[0].id).withComments().run();
+  const value = await userRepository
+    .read(usersWithComments[0].id)
+    .withComments()
+    .withStories()
+    .withPosts()
+    .whereFirstName("Hello World!")
+    .run();
 
-  console.log({ value });
+  console.log(JSON.stringify({ value }, null, 2));
 
   await database.close();
 };
